@@ -1,37 +1,17 @@
 import { Layout } from "@/components/layout";
 import { useGetMyProfile, useUpdateMyProfile, useListMemories, useListUsers } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Settings, Moon, Sparkles, Users, Flame, Play, TrendingUp } from "lucide-react";
+import { Settings, Moon, Sparkles, Users, Play, TrendingUp } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
-const energyHistory = [
-  { night: "Mon", energy: 72 },
-  { night: "Tue", energy: 45 },
-  { night: "Wed", energy: 88 },
-  { night: "Thu", energy: 91 },
-  { night: "Fri", energy: 94 },
-  { night: "Sat", energy: 97 },
-  { night: "Sun", energy: 83 },
+const ENERGY_DATA = [
+  { n: "M", v: 72 }, { n: "T", v: 45 }, { n: "W", v: 88 },
+  { n: "T", v: 91 }, { n: "F", v: 94 }, { n: "S", v: 97 }, { n: "S", v: 83 },
 ];
-
-function AnimatedNumber({ value }: { value: number }) {
-  const [display, setDisplay] = useState(0);
-  useEffect(() => {
-    let start = 0;
-    const step = Math.ceil(value / 30);
-    const t = setInterval(() => {
-      start += step;
-      if (start >= value) { setDisplay(value); clearInterval(t); }
-      else setDisplay(start);
-    }, 30);
-    return () => clearInterval(t);
-  }, [value]);
-  return <>{display}</>;
-}
 
 export default function Profile() {
   const queryClient = useQueryClient();
@@ -46,149 +26,148 @@ export default function Profile() {
   const [vibeLabel, setVibeLabel] = useState("");
 
   useEffect(() => {
-    if (profile) {
-      setUsername(profile.username);
-      setBio(profile.bio);
-      setVibeLabel(profile.vibe_label);
-    }
+    if (profile) { setUsername(profile.username); setBio(profile.bio); setVibeLabel(profile.vibe_label); }
   }, [profile]);
 
   if (isLoading || !profile) return (
-    <Layout><div className="h-screen flex items-center justify-center"><div className="w-8 h-8 rounded-full border-t-2 border-primary animate-spin" /></div></Layout>
+    <Layout><div className="h-screen flex items-center justify-center"><div className="w-7 h-7 rounded-full border-t-2 border-primary animate-spin" /></div></Layout>
   );
 
   const recentMemories = memories?.slice(0, 3) ?? [];
-  const otherUsers = users?.filter(u => u.id !== profile.id) ?? [];
+  const otherUsers = (users?.filter(u => u.id !== profile.id) ?? []).slice(0, 6);
+
+  const stats = [
+    { icon: Moon, label: "Nights Out", value: profile.nights_count, color: "#7c5cfc" },
+    { icon: Sparkles, label: "Memories", value: profile.memories_count, color: "#00d4ff" },
+    { icon: Users, label: "Circles", value: profile.circles_count, color: "#f0365a" },
+  ];
 
   return (
     <Layout>
-      <div className="p-4 lg:p-8 max-w-5xl mx-auto space-y-8 pb-16">
+      <div className="max-w-5xl mx-auto px-6 lg:px-10 py-10 lg:py-14 space-y-10 pb-16">
 
-        {/* Cinematic ID Card */}
+        {/* Identity card */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative rounded-[3rem] overflow-hidden border border-white/10 p-8 lg:p-12"
-          style={{ background: "rgba(255,255,255,0.04)", backdropFilter: "blur(30px)" }}
+          className="relative rounded-2xl overflow-hidden p-8"
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
         >
-          <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ background: profile.avatar_gradient || "linear-gradient(135deg,#8b6fff,#00d4ff)" }} />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#05050d] via-transparent to-transparent pointer-events-none" />
+          {/* Ambient tint */}
+          <div className="absolute inset-0 pointer-events-none"
+            style={{ background: profile.avatar_gradient, opacity: 0.06 }} />
 
-          <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8 text-center md:text-left">
-            <div className="relative">
-              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white/10 shadow-2xl overflow-hidden relative">
-                <div className="absolute inset-0" style={{ background: profile.avatar_gradient || "linear-gradient(135deg,#8b6fff,#00d4ff)" }} />
-                <div className="absolute inset-0 flex items-center justify-center text-4xl font-display font-bold text-white/80">
-                  {profile.username[0].toUpperCase()}
-                </div>
+          <div className="relative flex flex-col md:flex-row items-start gap-7">
+            {/* Avatar */}
+            <div className="relative shrink-0">
+              <div className="w-20 h-20 rounded-2xl overflow-hidden relative flex items-center justify-center text-3xl font-bold text-white"
+                style={{ background: profile.avatar_gradient }}>
+                {profile.username[0].toUpperCase()}
               </div>
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-green-400 border-2 border-[#05050d] shadow-[0_0_10px_rgba(74,222,128,0.6)]" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center"
+                style={{ background: "#0a0a0a", borderColor: "#0a0a0a" }}>
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" style={{ boxShadow: "0 0 6px #34d399" }} />
+              </div>
             </div>
 
-            <div className="flex-1 space-y-4">
-              <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-                <div className="space-y-3">
-                  <h1 className="text-4xl md:text-5xl font-display font-bold leading-none" style={{ textShadow: "0 0 40px rgba(139,111,255,0.5)" }}>
-                    @{profile.username}
-                  </h1>
-                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/10">
-                    <Flame className="w-3.5 h-3.5 text-primary" />
-                    <span className="text-primary text-xs font-bold tracking-widest uppercase">{profile.vibe_label}</span>
-                  </div>
+            {/* Info */}
+            <div className="flex-1 space-y-3">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1.5">
+                  <h1 className="text-[28px] font-semibold tracking-tight text-white">@{profile.username}</h1>
+                  <span className="tag tag-primary">{profile.vibe_label}</span>
                 </div>
-
                 <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                   <DialogTrigger asChild>
-                    <button className="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all mx-auto md:mx-0">
-                      <Settings className="w-5 h-5" />
+                    <button className="w-9 h-9 rounded-xl flex items-center justify-center text-white/30 hover:text-white/70 transition-colors"
+                      style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
+                      <Settings className="w-4 h-4" />
                     </button>
                   </DialogTrigger>
-                  <DialogContent className="border-white/10 bg-[#08081a]">
+                  <DialogContent className="border-white/8 max-w-sm" style={{ background: "#111" }}>
                     <DialogHeader>
-                      <DialogTitle className="text-2xl font-display" style={{ textShadow: "0 0 20px rgba(139,111,255,0.5)" }}>Edit Night Identity</DialogTitle>
+                      <DialogTitle className="text-lg font-semibold tracking-tight">Edit Identity</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4 pt-4">
+                    <div className="space-y-4 pt-2">
                       {[
-                        { label: "Username", val: username, set: setUsername, ph: "your handle" },
-                        { label: "Bio", val: bio, set: setBio, ph: "what you do after dark" },
-                        { label: "Vibe Label", val: vibeLabel, set: setVibeLabel, ph: "your energy in words" },
-                      ].map(({ label, val, set, ph }) => (
+                        { label: "Username", val: username, set: setUsername },
+                        { label: "Bio", val: bio, set: setBio },
+                        { label: "Vibe Label", val: vibeLabel, set: setVibeLabel },
+                      ].map(({ label, val, set }) => (
                         <div key={label} className="space-y-1.5">
-                          <label className="text-xs font-bold text-white/40 uppercase tracking-wider">{label}</label>
-                          <input value={val} onChange={e => set(e.target.value)} placeholder={ph}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary/50 transition-colors" />
+                          <label className="text-[11px] font-medium tracking-widest uppercase text-white/30">{label}</label>
+                          <input value={val} onChange={e => set(e.target.value)}
+                            className="w-full rounded-xl px-4 py-2.5 text-[14px] text-white focus:outline-none"
+                            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} />
                         </div>
                       ))}
                       <button
-                        onClick={() => {
-                          updateProfile.mutate({ data: { username, bio, vibe_label: vibeLabel } }, {
-                            onSuccess: () => { setIsEditOpen(false); queryClient.invalidateQueries({ queryKey: ["/api/users/me"] }); }
-                          });
-                        }}
+                        onClick={() => updateProfile.mutate({ data: { username, bio, vibe_label: vibeLabel } }, {
+                          onSuccess: () => { setIsEditOpen(false); queryClient.invalidateQueries({ queryKey: ["/api/users/me"] }); }
+                        })}
                         disabled={updateProfile.isPending}
-                        className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-50 shadow-[0_0_20px_rgba(139,111,255,0.3)]">
-                        {updateProfile.isPending ? "Saving..." : "Save Identity"}
+                        className="w-full py-2.5 rounded-xl text-[14px] font-semibold text-white disabled:opacity-40"
+                        style={{ background: "#7c5cfc" }}>
+                        {updateProfile.isPending ? "Saving..." : "Save"}
                       </button>
                     </div>
                   </DialogContent>
                 </Dialog>
               </div>
-              <p className="text-lg text-white/70 max-w-lg">{profile.bio}</p>
+              <p className="text-[15px] text-white/50 leading-relaxed max-w-md font-light">{profile.bio}</p>
             </div>
           </div>
         </motion.div>
 
-        {/* Stats + Chart row */}
-        <div className="grid lg:grid-cols-5 gap-6">
-          {/* Stats */}
-          <div className="lg:col-span-2 grid grid-cols-3 lg:grid-cols-1 gap-4">
-            {[
-              { icon: Moon, label: "Nights Out", value: profile.nights_count, color: "text-primary", bg: "bg-primary/10" },
-              { icon: Sparkles, label: "Memories", value: profile.memories_count, color: "text-secondary", bg: "bg-secondary/10" },
-              { icon: Users, label: "Circles", value: profile.circles_count, color: "text-[#ff4d9a]", bg: "bg-[#ff4d9a]/10" },
-            ].map(({ icon: Icon, label, value, color, bg }, i) => (
+        {/* Stats + Chart */}
+        <div className="grid lg:grid-cols-5 gap-4">
+          {/* Stat tiles */}
+          <div className="lg:col-span-2 space-y-3">
+            {stats.map(({ icon: Icon, label, value, color }, i) => (
               <motion.div key={label}
-                initial={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, x: -16 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.1 + 0.2 }}
-                className="glass-card rounded-[1.5rem] p-6 border border-white/5 hover:border-white/10 transition-all space-y-3 text-center lg:text-left lg:flex lg:items-center lg:gap-5"
+                transition={{ delay: i * 0.08 + 0.1 }}
+                className="flex items-center gap-5 px-5 py-4 rounded-2xl"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
               >
-                <div className={`w-12 h-12 rounded-2xl ${bg} flex items-center justify-center ${color} shrink-0 mx-auto lg:mx-0`}>
-                  <Icon className="w-6 h-6" />
+                <div className="w-10 h-10 rounded-xl shrink-0 flex items-center justify-center"
+                  style={{ background: `${color}18` }}>
+                  <Icon className="w-5 h-5" style={{ color }} />
                 </div>
                 <div>
-                  <div className={`text-3xl font-display font-bold ${color}`}>
-                    <AnimatedNumber value={value} />
-                  </div>
-                  <div className="text-white/40 text-xs uppercase tracking-widest font-bold mt-0.5">{label}</div>
+                  <div className="text-2xl font-semibold tabular-nums" style={{ color }}>{value}</div>
+                  <div className="text-[11px] text-white/30 uppercase tracking-widest font-medium">{label}</div>
                 </div>
               </motion.div>
             ))}
           </div>
 
-          {/* Energy History Chart */}
+          {/* Chart */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="lg:col-span-3 glass-card rounded-[2rem] p-6 border border-white/5"
+            transition={{ delay: 0.2 }}
+            className="lg:col-span-3 rounded-2xl p-6"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
           >
-            <div className="flex items-center gap-2 mb-6">
-              <TrendingUp className="w-5 h-5 text-primary" />
-              <h3 className="font-display font-bold text-lg">Night Energy This Week</h3>
+            <div className="flex items-center gap-2 mb-5">
+              <TrendingUp className="w-4 h-4 text-white/25" />
+              <span className="text-[13px] font-medium text-white/40 tracking-tight">Energy This Week</span>
             </div>
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={energyHistory} barCategoryGap="30%">
-                <XAxis dataKey="night" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis domain={[0, 100]} tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 10 }} axisLine={false} tickLine={false} width={28} />
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={ENERGY_DATA} barCategoryGap="35%" barSize={20}>
+                <XAxis dataKey="n" tick={{ fill: "rgba(255,255,255,0.2)", fontSize: 11, fontFamily: "'DM Mono'" }}
+                  axisLine={false} tickLine={false} />
+                <YAxis domain={[0, 100]} hide />
                 <Tooltip
-                  contentStyle={{ background: "rgba(8,8,26,0.95)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#fff", fontSize: 12 }}
+                  contentStyle={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, fontSize: 12, color: "#fff" }}
                   cursor={{ fill: "rgba(255,255,255,0.03)" }}
-                  formatter={(v: any) => [`${v}%`, "Energy"]}
+                  formatter={(v: any) => [`${v}%`, ""]}
                 />
-                <Bar dataKey="energy" radius={[6, 6, 0, 0]}>
-                  {energyHistory.map((entry, i) => (
-                    <Cell key={i} fill={entry.energy >= 90 ? "#00d4ff" : entry.energy >= 75 ? "#8b6fff" : "rgba(139,111,255,0.4)"} />
+                <Bar dataKey="v" radius={[4, 4, 0, 0]}>
+                  {ENERGY_DATA.map((d, i) => (
+                    <Cell key={i} fill={d.v >= 90 ? "#00d4ff" : d.v >= 75 ? "#7c5cfc" : "rgba(124,92,252,0.3)"} />
                   ))}
                 </Bar>
               </BarChart>
@@ -196,62 +175,65 @@ export default function Profile() {
           </motion.div>
         </div>
 
-        {/* Recent Memories */}
+        {/* Recent memories */}
         {recentMemories.length > 0 && (
-          <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="space-y-5">
+          <section className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-display font-bold">Recent Replays</h2>
-              <Link href="/memories" className="text-sm text-primary/70 hover:text-primary transition-colors">View all</Link>
+              <h2 className="text-[15px] font-semibold text-white/50">Recent Replays</h2>
+              <Link href="/memories"><span className="text-[13px] text-white/25 hover:text-white/50 transition-colors">View all</span></Link>
             </div>
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-3 gap-3">
               {recentMemories.map((memory, i) => (
                 <Link key={memory.id} href={`/memories/${memory.id}`}>
                   <motion.div
-                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 + 0.5 }}
-                    className="group glass-card rounded-2xl p-5 border border-white/5 hover:border-primary/20 transition-all duration-300 hover:shadow-[0_0_20px_rgba(139,111,255,0.1)] cursor-pointer"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.07 + 0.3 }}
+                    whileHover={{ y: -2 }}
+                    className="group p-4 rounded-2xl cursor-pointer transition-colors"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
                   >
                     <div className="flex items-center justify-between mb-3">
-                      <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                        <Play className="w-4 h-4 text-primary ml-0.5" />
+                      <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                        style={{ background: "rgba(124,92,252,0.12)" }}>
+                        <Play className="w-3.5 h-3.5 text-primary ml-0.5" />
                       </div>
-                      <span className="text-xs text-white/30 font-mono">{memory.energy_score}%</span>
+                      <span className="font-mono text-[11px] text-white/25">{memory.energy_score}%</span>
                     </div>
-                    <h4 className="font-display font-bold mb-1 group-hover:text-primary transition-colors">{memory.title}</h4>
-                    <p className="text-xs text-white/40">{memory.night_date} · {memory.moments_count} moments</p>
+                    <h4 className="text-[14px] font-semibold text-white/80 group-hover:text-white transition-colors mb-1 leading-tight">{memory.title}</h4>
+                    <p className="text-[12px] text-white/30">{memory.night_date} · {memory.moments_count} moments</p>
                   </motion.div>
                 </Link>
               ))}
             </div>
-          </motion.section>
+          </section>
         )}
 
-        {/* Social Circles */}
+        {/* Circles */}
         {otherUsers.length > 0 && (
-          <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="space-y-5">
-            <h2 className="text-xl font-display font-bold">Your Circles</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <section className="space-y-4">
+            <h2 className="text-[15px] font-semibold text-white/50">Your Circles</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
               {otherUsers.map((user, i) => (
                 <motion.div key={user.id}
-                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 + 0.55 }}
-                  className="glass-card rounded-2xl p-4 border border-white/5 flex items-center gap-4 hover:border-white/10 transition-all"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 + 0.4 }}
+                  className="flex items-center gap-3.5 px-4 py-3.5 rounded-2xl"
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
                 >
-                  <div className="w-12 h-12 rounded-full shrink-0 relative overflow-hidden" style={{ background: user.avatar_gradient }}>
-                    <div className="absolute inset-0 flex items-center justify-center text-lg font-display font-bold text-white/80">
-                      {user.username[0].toUpperCase()}
-                    </div>
+                  <div className="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center text-sm font-semibold text-white"
+                    style={{ background: user.avatar_gradient }}>
+                    {user.username[0].toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <div className="font-bold text-sm truncate">@{user.username}</div>
-                    <div className="text-xs text-white/40 truncate">{user.vibe_label}</div>
-                    <div className="flex gap-3 mt-1.5 text-xs text-white/30">
-                      <span>{user.nights_count} nights</span>
-                      <span>{user.memories_count} memories</span>
-                    </div>
+                    <div className="text-[13px] font-medium text-white/75 truncate">@{user.username}</div>
+                    <div className="text-[11px] text-white/30 truncate">{user.nights_count} nights · {user.memories_count} memories</div>
                   </div>
                 </motion.div>
               ))}
             </div>
-          </motion.section>
+          </section>
         )}
       </div>
     </Layout>

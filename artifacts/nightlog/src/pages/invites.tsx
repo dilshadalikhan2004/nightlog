@@ -1,8 +1,8 @@
 import { Layout } from "@/components/layout";
-import { useListInvites, useAcceptInvite, useDeclineInvite, useCreateInvite, useListUsers, useListEvents } from "@workspace/api-client-react";
+import { useListInvites, useAcceptInvite, useDeclineInvite, useCreateInvite, useListEvents } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Check, X, Send, Users } from "lucide-react";
+import { Check, X, Plus } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
@@ -11,153 +11,148 @@ export default function Invites() {
   const { data: invites, isLoading } = useListInvites();
   const acceptInvite = useAcceptInvite();
   const declineInvite = useDeclineInvite();
-  
-  const [isInviteOpen, setIsInviteOpen] = useState(false);
-  const [selectedEventId, setSelectedEventId] = useState("");
-  const [recipientUsername, setRecipientUsername] = useState("");
-  const [message, setMessage] = useState("");
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [eventId, setEventId] = useState("");
+  const [recipient, setRecipient] = useState("");
+  const [msg, setMsg] = useState("");
   const createInvite = useCreateInvite();
+  const { data: events } = useListEvents({ filter: "tonight" });
 
-  const { data: users } = useListUsers();
-  const { data: events } = useListEvents({ filter: 'tonight' });
+  const pending = invites?.filter(i => i.status === "pending") ?? [];
+  const past = invites?.filter(i => i.status !== "pending") ?? [];
 
-  const pendingInvites = invites?.filter(i => i.status === 'pending') || [];
-  const pastInvites = invites?.filter(i => i.status !== 'pending') || [];
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["/api/invites"] });
 
   return (
     <Layout>
-      <div className="p-4 lg:p-8 max-w-4xl mx-auto space-y-12">
-        <header className="space-y-4 pt-8 flex justify-between items-end">
-          <div>
-            <h1 className="text-4xl font-display font-bold glow-text">Tonight's Circle</h1>
-            <p className="text-muted-foreground text-lg">Who are you running with tonight?</p>
+      <div className="max-w-3xl mx-auto px-6 lg:px-10 py-10 lg:py-14 space-y-10 pb-16">
+
+        {/* Header */}
+        <div className="flex items-end justify-between">
+          <div className="space-y-1">
+            <h1 className="display text-[72px] text-white leading-none tracking-wide">Circle</h1>
+            <p className="text-[14px] text-white/30 font-light">Who are you running with tonight?</p>
           </div>
-          <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-              <button className="px-6 py-3 bg-primary text-white rounded-full font-bold shadow-[0_0_20px_rgba(139,111,255,0.3)] hover:scale-105 transition-transform flex items-center gap-2">
-                <Send className="w-4 h-4" /> Send Invite
-              </button>
+              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-semibold text-white mb-2"
+                style={{ background: "#7c5cfc", boxShadow: "0 0 0 1px rgba(124,92,252,0.3)" }}>
+                <Plus className="w-4 h-4" /> Send Invite
+              </motion.button>
             </DialogTrigger>
-            <DialogContent className="glass-card border-white/10 sm:max-w-md bg-[#05050d]">
+            <DialogContent className="border-white/8 max-w-sm" style={{ background: "#111" }}>
               <DialogHeader>
-                <DialogTitle className="text-2xl font-display glow-text">Invite to Circle</DialogTitle>
+                <DialogTitle className="text-lg font-semibold tracking-tight">Send Invite</DialogTitle>
               </DialogHeader>
-              <div className="space-y-6 pt-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-white/70">Select Event</label>
-                  <select 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none"
-                    value={selectedEventId}
-                    onChange={(e) => setSelectedEventId(e.target.value)}
-                  >
-                    <option value="" disabled>Choose an event...</option>
-                    {events?.map(e => <option key={e.id} value={e.id} className="bg-background">{e.title}</option>)}
+              <div className="space-y-4 pt-2">
+                {[
+                  { label: "Recipient", val: recipient, set: setRecipient, ph: "username..." },
+                  { label: "Message", val: msg, set: setMsg, ph: "Let's link up..." },
+                ].map(({ label, val, set, ph }) => (
+                  <div key={label} className="space-y-1.5">
+                    <label className="text-[11px] font-medium tracking-widest uppercase text-white/30">{label}</label>
+                    <input value={val} onChange={e => set(e.target.value)} placeholder={ph}
+                      className="w-full rounded-xl px-4 py-2.5 text-[14px] text-white placeholder:text-white/20 focus:outline-none"
+                      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} />
+                  </div>
+                ))}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-medium tracking-widest uppercase text-white/30">Event</label>
+                  <select value={eventId} onChange={e => setEventId(e.target.value)}
+                    className="w-full rounded-xl px-4 py-2.5 text-[14px] text-white focus:outline-none appearance-none"
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <option value="" style={{ background: "#111" }}>Choose an event…</option>
+                    {events?.map(e => <option key={e.id} value={e.id} style={{ background: "#111" }}>{e.title}</option>)}
                   </select>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-white/70">Recipient Username</label>
-                  <input 
-                    type="text"
-                    value={recipientUsername}
-                    onChange={(e) => setRecipientUsername(e.target.value)}
-                    placeholder="e.g. nightowl"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary/50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-white/70">Message (Optional)</label>
-                  <input 
-                    type="text"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Let's link up..."
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary/50"
-                  />
-                </div>
-                <button 
-                  disabled={!selectedEventId || !recipientUsername || createInvite.isPending}
-                  onClick={() => {
-                    createInvite.mutate({ data: { event_id: parseInt(selectedEventId), recipient_username: recipientUsername, message } }, {
-                      onSuccess: () => {
-                        setIsInviteOpen(false);
-                        setSelectedEventId("");
-                        setRecipientUsername("");
-                        setMessage("");
-                      }
-                    })
-                  }}
-                  className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl disabled:opacity-50 transition-colors"
-                >
-                  {createInvite.isPending ? "Sending..." : "Send Invite"}
+                <button
+                  disabled={!eventId || !recipient || createInvite.isPending}
+                  onClick={() => createInvite.mutate({ data: { event_id: parseInt(eventId), recipient_username: recipient, message: msg } }, {
+                    onSuccess: () => { setIsOpen(false); setEventId(""); setRecipient(""); setMsg(""); }
+                  })}
+                  className="w-full py-2.5 rounded-xl text-[14px] font-semibold text-white disabled:opacity-40"
+                  style={{ background: "#7c5cfc" }}>
+                  {createInvite.isPending ? "Sending..." : "Send"}
                 </button>
               </div>
             </DialogContent>
           </Dialog>
-        </header>
+        </div>
 
         {isLoading ? (
-          <div className="space-y-4">
-             {[1,2,3].map(i => <div key={i} className="h-24 rounded-[1.5rem] glass-card animate-pulse" />)}
-          </div>
+          <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 rounded-2xl animate-pulse" style={{ background: "rgba(255,255,255,0.04)" }} />)}</div>
         ) : (
-          <div className="space-y-12">
-            {pendingInvites.length > 0 && (
-              <section className="space-y-6">
-                <h2 className="text-2xl font-display font-bold flex items-center gap-3">
-                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  Pending Invites
-                </h2>
-                <div className="grid gap-4">
-                  {pendingInvites.map((invite) => (
-                    <motion.div key={invite.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6 rounded-[1.5rem] border-primary/20 bg-primary/5 flex flex-col sm:flex-row gap-6 justify-between items-center shadow-[inset_0_0_20px_rgba(139,111,255,0.05)]">
-                      <div className="space-y-2 text-center sm:text-left">
-                        <div className="flex items-center gap-2 justify-center sm:justify-start">
-                          <Users className="w-4 h-4 text-primary" />
-                          <span className="font-medium text-white/80">{invite.sender_name} invited you</span>
-                        </div>
-                        <h3 className="text-xl font-display font-bold">{invite.event_title}</h3>
-                        {invite.message && <p className="text-sm text-white/60 italic">"{invite.message}"</p>}
-                      </div>
-                      <div className="flex gap-3">
-                        <button 
-                          onClick={() => declineInvite.mutate({ id: invite.id }, { onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/invites"] }) })}
-                          className="w-12 h-12 rounded-full glass-card border-white/10 flex items-center justify-center text-white/50 hover:text-destructive hover:border-destructive/50 transition-colors"
-                        >
-                          <X className="w-5 h-5" />
-                        </button>
-                        <button 
-                          onClick={() => acceptInvite.mutate({ id: invite.id }, { onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/invites"] }) })}
-                          className="px-6 h-12 rounded-full bg-primary text-white font-bold flex items-center gap-2 hover:scale-105 transition-transform shadow-[0_0_15px_rgba(139,111,255,0.3)]"
-                        >
-                          <Check className="w-5 h-5" /> Accept
-                        </button>
-                      </div>
-                    </motion.div>
-                  ))}
+          <div className="space-y-10">
+
+            {/* Pending */}
+            {pending.length > 0 && (
+              <section className="space-y-3">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="live-dot bg-primary" />
+                  <span className="text-[13px] font-medium text-white/40 uppercase tracking-widest">Pending · {pending.length}</span>
                 </div>
+                {pending.map((invite, i) => (
+                  <motion.div key={invite.id}
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+                    className="flex items-center gap-5 p-5 rounded-2xl"
+                    style={{ background: "rgba(124,92,252,0.07)", border: "1px solid rgba(124,92,252,0.15)" }}
+                  >
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-primary shrink-0"
+                      style={{ background: "rgba(124,92,252,0.15)" }}>
+                      {invite.sender_name?.[0]?.toUpperCase() ?? "?"}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12px] text-white/35 mb-0.5">{invite.sender_name} invited you</p>
+                      <h3 className="text-[16px] font-semibold text-white tracking-tight leading-tight">{invite.event_title}</h3>
+                      {invite.message && <p className="text-[12px] text-white/35 mt-1 italic">"{invite.message}"</p>}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button onClick={() => declineInvite.mutate({ id: invite.id }, { onSuccess: invalidate })}
+                        className="w-9 h-9 rounded-xl flex items-center justify-center text-white/30 hover:text-white/60 transition-colors"
+                        style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
+                        <X className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => acceptInvite.mutate({ id: invite.id }, { onSuccess: invalidate })}
+                        className="flex items-center gap-1.5 px-4 h-9 rounded-xl text-[13px] font-semibold text-white"
+                        style={{ background: "#7c5cfc" }}>
+                        <Check className="w-3.5 h-3.5" /> Accept
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
               </section>
             )}
 
-            <section className="space-y-6">
-              <h2 className="text-2xl font-display font-bold">Circle History</h2>
-              {pastInvites.length === 0 ? (
-                <div className="text-center py-12 glass-card rounded-[2rem] border-white/5">
-                  <p className="text-white/50">No past invites</p>
-                </div>
+            {/* History */}
+            <section className="space-y-0">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-[13px] font-medium text-white/25 uppercase tracking-widest">History</span>
+              </div>
+              {past.length === 0 ? (
+                <div className="py-12 text-center text-[14px] text-white/20">No past invites yet</div>
               ) : (
-                <div className="grid gap-4">
-                  {pastInvites.map((invite) => (
-                    <div key={invite.id} className="glass-card p-5 rounded-[1.5rem] border-white/5 flex justify-between items-center opacity-60">
-                      <div>
-                        <span className="text-sm text-white/50">{invite.sender_name} invited you to</span>
-                        <h3 className="font-bold">{invite.event_title}</h3>
-                      </div>
-                      <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${invite.status === 'accepted' ? 'border-secondary/30 text-secondary bg-secondary/10' : 'border-white/10 text-white/50'}`}>
-                        {invite.status}
-                      </span>
+                past.map((invite, i) => (
+                  <div key={invite.id}
+                    className="flex items-center gap-4 py-3.5 border-b border-white/5"
+                  >
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold text-white/40 shrink-0"
+                      style={{ background: "rgba(255,255,255,0.05)" }}>
+                      {invite.sender_name?.[0]?.toUpperCase() ?? "?"}
                     </div>
-                  ))}
-                </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] text-white/40 truncate">{invite.sender_name} — {invite.event_title}</p>
+                    </div>
+                    <span className={`text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
+                      invite.status === "accepted"
+                        ? "text-[#00d4ff]"
+                        : "text-white/25"
+                    }`} style={{ background: invite.status === "accepted" ? "rgba(0,212,255,0.08)" : "rgba(255,255,255,0.04)" }}>
+                      {invite.status}
+                    </span>
+                  </div>
+                ))
               )}
             </section>
           </div>

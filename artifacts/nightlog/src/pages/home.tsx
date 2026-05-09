@@ -1,47 +1,44 @@
 import { Layout } from "@/components/layout";
 import { useGetFeedStats, useGetTrendingEvents, useGetRecentActivity } from "@workspace/api-client-react";
 import { motion } from "framer-motion";
-import { Activity, Flame, Users, Sparkles, ArrowRight, Clock } from "lucide-react";
+import { ArrowRight, Flame, TrendingUp } from "lucide-react";
 import { Link } from "wouter";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-function useAnimatedNumber(target: number | undefined, duration = 1200) {
-  const [value, setValue] = useState(0);
-  const raf = useRef<number | null>(null);
+function useCountUp(target: number | undefined, duration = 1400) {
+  const [val, setVal] = useState(0);
+  const raf = useRef<number>(0);
   useEffect(() => {
     if (target === undefined) return;
-    const start = performance.now();
-    const from = 0;
-    const animate = (now: number) => {
-      const t = Math.min((now - start) / duration, 1);
-      const ease = 1 - Math.pow(1 - t, 3);
-      setValue(Math.round(from + (target - from) * ease));
-      if (t < 1) raf.current = requestAnimationFrame(animate);
+    const t0 = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min((now - t0) / duration, 1);
+      const ease = 1 - Math.pow(1 - p, 4);
+      setVal(Math.round(target * ease));
+      if (p < 1) raf.current = requestAnimationFrame(tick);
     };
-    raf.current = requestAnimationFrame(animate);
-    return () => { if (raf.current) cancelAnimationFrame(raf.current); };
-  }, [target, duration]);
-  return value;
+    raf.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf.current);
+  }, [target]);
+  return val;
 }
 
-function StatCard({ icon: Icon, label, value, suffix = "", color, delay }: {
-  icon: any; label: string; value: number | undefined; suffix?: string; color: string; delay: number;
-}) {
-  const animated = useAnimatedNumber(value);
+const STAT_ITEMS = [
+  { key: "live_events" as const, label: "Live Events", suffix: "" },
+  { key: "people_out" as const, label: "Out Tonight", suffix: "" },
+  { key: "avg_energy" as const, label: "City Energy", suffix: "%" },
+  { key: "memories_tonight" as const, label: "Memories", suffix: "" },
+];
+
+function StatItem({ label, value, suffix }: { label: string; value: number | undefined; suffix: string }) {
+  const animated = useCountUp(value);
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className="glass-card p-6 rounded-3xl border border-white/5 hover:border-white/10 transition-all group relative overflow-hidden"
-    >
-      <div className={`absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity ${color} bg-current`} />
-      <Icon className={`w-5 h-5 ${color} mb-5 opacity-80`} />
-      <div className="text-3xl font-display font-bold tabular-nums">
-        {value !== undefined ? `${animated}${suffix}` : <span className="animate-pulse text-white/20">···</span>}
-      </div>
-      <div className="text-sm text-white/40 mt-1.5 font-medium">{label}</div>
-    </motion.div>
+    <div className="flex flex-col gap-1 px-8 py-5 border-r border-white/6 last:border-r-0 first:pl-0 last:pr-0">
+      <span className="text-[11px] font-medium tracking-widest text-white/30 uppercase">{label}</span>
+      <span className="text-3xl font-semibold tracking-tight tabular-nums text-white">
+        {value !== undefined ? `${animated}${suffix}` : <span className="text-white/20 animate-pulse text-xl">—</span>}
+      </span>
+    </div>
   );
 }
 
@@ -52,184 +49,151 @@ export default function Home() {
 
   return (
     <Layout>
-      <div className="p-4 lg:p-8 max-w-7xl mx-auto space-y-14">
+      <div className="max-w-6xl mx-auto px-6 lg:px-10">
 
-        {/* Hero */}
-        <section className="relative pt-12 pb-24 overflow-hidden rounded-[2.5rem] border border-white/5"
-          style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(20px)" }}>
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[120px] pointer-events-none"
-            style={{ background: "radial-gradient(circle,rgba(139,111,255,0.25),transparent 70%)" }} />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[120px] pointer-events-none"
-            style={{ background: "radial-gradient(circle,rgba(0,212,255,0.15),transparent 70%)" }} />
+        {/* ── Hero ── */}
+        <section className="pt-16 pb-20 lg:pt-24">
+          <motion.div
+            initial={{ opacity: 0, y: 32 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-8 max-w-4xl"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="live-dot bg-[#00d4ff]" />
+              <span className="text-[13px] text-white/40 tracking-wide">
+                {stats ? `${stats.people_out} people in the city tonight` : "Live now"}
+              </span>
+            </div>
 
-          <div className="relative z-10 px-8 lg:px-16 grid lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-              className="space-y-8"
-            >
-              <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-secondary" />
-                </span>
-                <span className="text-white/70">
-                  {stats ? `${stats.people_out} people out tonight` : "Tonight is alive"}
-                </span>
-              </div>
+            <h1 className="display text-[clamp(80px,14vw,160px)] text-white leading-none tracking-wide">
+              Nights<br />
+              <span style={{ WebkitTextStroke: "1px rgba(255,255,255,0.2)", color: "transparent" }}>Turned</span><br />
+              Cinema
+            </h1>
 
-              <h1 className="text-6xl lg:text-7xl xl:text-8xl font-display font-bold leading-[0.9] tracking-tight">
-                <span className="text-white">Nights</span><br />
-                <span className="text-white">turned into</span><br />
-                <span style={{ background: "linear-gradient(135deg,#8b6fff,#00d4ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                  cinema.
-                </span>
-              </h1>
+            <p className="text-[17px] text-white/40 max-w-md leading-relaxed font-light">
+              Step into the pulse. Discover events, replay memories, feel the energy of the city around you.
+            </p>
 
-              <p className="text-lg text-white/50 max-w-md leading-relaxed">
-                Step into the pulse. Discover underground rooms, share cinematic memories, and feel the energy of the city.
-              </p>
-
-              <div className="flex flex-wrap gap-4">
-                <Link href="/discover">
-                  <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}
-                    className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-primary text-white font-semibold cursor-pointer"
-                    style={{ boxShadow: "0 0 30px rgba(139,111,255,0.4)" }}>
-                    Enter the Night <Flame className="w-4 h-4" />
-                  </motion.div>
-                </Link>
-                <Link href="/memories">
-                  <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}
-                    className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full border border-white/10 bg-white/5 text-white/80 font-semibold cursor-pointer hover:bg-white/8 transition-colors">
-                    Replay Memories
-                  </motion.div>
-                </Link>
-              </div>
-            </motion.div>
-
-            {/* Hero visual */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1, delay: 0.15 }}
-              className="hidden lg:block relative h-[480px]"
-            >
-              <div className="absolute inset-0 rounded-[2.5rem] blur-2xl opacity-40"
-                style={{ background: "linear-gradient(135deg,rgba(139,111,255,0.4),rgba(0,212,255,0.3))" }} />
-              <div className="relative h-full rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl p-4 flex flex-col gap-3"
-                style={{ background: "rgba(255,255,255,0.04)", backdropFilter: "blur(30px)" }}>
-
-                {/* Mock event card */}
-                <div className="flex-1 rounded-2xl relative overflow-hidden border border-white/5"
-                  style={{ background: "linear-gradient(135deg,#8b6fff,#ff4d9a)" }}>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1.5 text-xs font-bold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /> LIVE · {stats?.avg_energy ?? 94}%
-                  </div>
-                  <div className="absolute bottom-4 left-4">
-                    <h3 className="font-display font-bold text-xl" style={{ textShadow: "0 0 20px rgba(255,255,255,0.4)" }}>Neon Afterlife</h3>
-                    <p className="text-sm text-white/60 mt-1">Skyline Rooftop · {stats?.people_out ?? 247} attending</p>
-                  </div>
-                </div>
-
-                {/* Activity items */}
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { label: "Vault 09", sub: "Underground", color: "linear-gradient(135deg,#8b6fff,#00d4ff)" },
-                    { label: "Midnight Echo", sub: "AI Replay", color: "linear-gradient(135deg,#ff4d9a,#f6d67d)" },
-                  ].map((item) => (
-                    <div key={item.label} className="rounded-xl border border-white/5 p-3 flex items-center gap-3"
-                      style={{ background: "rgba(255,255,255,0.04)" }}>
-                      <div className="w-8 h-8 rounded-xl shrink-0" style={{ background: item.color }} />
-                      <div>
-                        <div className="text-sm font-bold">{item.label}</div>
-                        <div className="text-xs text-white/40">{item.sub}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          </div>
+            <div className="flex flex-wrap items-center gap-4 pt-2">
+              <Link href="/discover">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center gap-2.5 px-7 py-3.5 rounded-xl text-[14px] font-semibold text-white transition-all"
+                  style={{ background: "#7c5cfc", boxShadow: "0 0 0 1px rgba(124,92,252,0.3), 0 8px 24px rgba(124,92,252,0.25)" }}
+                >
+                  Discover Tonight <ArrowRight className="w-4 h-4" />
+                </motion.button>
+              </Link>
+              <Link href="/memories">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center gap-2.5 px-7 py-3.5 rounded-xl text-[14px] font-medium text-white/60 hover:text-white/80 transition-colors"
+                  style={{ border: "1px solid rgba(255,255,255,0.1)" }}
+                >
+                  Replay Memories
+                </motion.button>
+              </Link>
+            </div>
+          </motion.div>
         </section>
 
-        {/* Live Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard icon={Activity} label="Live Events" value={stats?.live_events} color="text-secondary" delay={0.1} />
-          <StatCard icon={Users} label="People Out" value={stats?.people_out} color="text-primary" delay={0.15} />
-          <StatCard icon={Flame} label="City Energy" value={stats?.avg_energy} suffix="%" color="text-[#ff4d9a]" delay={0.2} />
-          <StatCard icon={Sparkles} label="Memories Tonight" value={stats?.memories_tonight} color="text-yellow-400" delay={0.25} />
+        {/* ── Stat strip ── */}
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-wrap"
+          >
+            {STAT_ITEMS.map(({ key, label, suffix }) => (
+              <StatItem key={key} label={label} value={stats?.[key]} suffix={suffix} />
+            ))}
+          </motion.div>
         </div>
 
-        {/* Trending Tonight */}
-        <section className="space-y-6">
+        {/* ── Trending Tonight ── */}
+        <section className="py-16 space-y-8">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-display font-bold">Trending Tonight</h2>
-            <Link href="/discover" className="flex items-center gap-1.5 text-sm text-primary/70 hover:text-primary transition-colors font-medium">
-              View all <ArrowRight className="w-4 h-4" />
+            <div className="flex items-center gap-3">
+              <TrendingUp className="w-4 h-4 text-white/30" />
+              <h2 className="text-[15px] font-semibold text-white/70 tracking-tight">Trending Tonight</h2>
+            </div>
+            <Link href="/discover">
+              <span className="text-[13px] text-white/30 hover:text-white/60 transition-colors flex items-center gap-1">
+                See all <ArrowRight className="w-3.5 h-3.5" />
+              </span>
             </Link>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+          <div className="grid md:grid-cols-3 gap-4">
             {trending?.map((event, i) => (
               <Link key={event.id} href={`/event/${event.id}`}>
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.07 + 0.3 }}
-                  whileHover={{ y: -4 }}
-                  className="group relative h-64 rounded-[2rem] overflow-hidden border border-white/5 cursor-pointer"
-                  style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.4)" }}
+                  transition={{ delay: i * 0.08 + 0.2, ease: [0.16, 1, 0.3, 1] }}
+                  whileHover={{ y: -3, transition: { duration: 0.2 } }}
+                  className="relative rounded-2xl overflow-hidden cursor-pointer group"
+                  style={{ height: i === 0 ? 320 : 240 }}
                 >
+                  {/* Full-bleed gradient */}
                   <div className="absolute inset-0" style={{ background: event.color_theme }} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
-                  <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1.5 text-xs font-bold">
-                    <Flame className="w-3 h-3 text-secondary" /> {event.energy_score}%
+                  {/* Hover shimmer */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                    style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 60%)" }} />
+
+                  {/* Energy */}
+                  <div className="absolute top-3.5 right-3.5 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono font-medium text-white"
+                    style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                    <Flame className="w-3 h-3" /> {event.energy_score}%
                   </div>
 
-                  <div className="absolute inset-0 p-5 flex flex-col justify-end">
-                    <p className="text-xs font-bold tracking-widest text-white/50 uppercase mb-1">{event.type}</p>
-                    <h3 className="text-xl font-display font-bold" style={{ textShadow: "0 0 20px rgba(255,255,255,0.3)" }}>
-                      {event.title}
-                    </h3>
-                    <p className="text-sm text-white/50 mt-1">{event.venue} · {event.attendee_count} going</p>
+                  {/* Text */}
+                  <div className="absolute bottom-0 left-0 right-0 p-5">
+                    <p className="text-[10px] font-medium tracking-widest text-white/50 uppercase mb-1">{event.type}</p>
+                    <h3 className="text-xl font-semibold text-white tracking-tight leading-tight">{event.title}</h3>
+                    <p className="text-[13px] text-white/50 mt-1">{event.venue}</p>
                   </div>
                 </motion.div>
               </Link>
             ))}
             {!trending && [1, 2, 3].map(i => (
-              <div key={i} className="h-64 rounded-[2rem] animate-pulse" style={{ background: "rgba(255,255,255,0.04)" }} />
+              <div key={i} className="rounded-2xl animate-pulse h-60" style={{ background: "rgba(255,255,255,0.04)" }} />
             ))}
           </div>
         </section>
 
-        {/* Recent Activity */}
+        {/* ── Recent Activity ── */}
         {activity && activity.length > 0 && (
-          <section className="space-y-5">
-            <h2 className="text-2xl font-display font-bold">Recent Activity</h2>
-            <div className="space-y-3">
+          <section className="pb-16 space-y-6">
+            <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} className="pt-10">
+              <h2 className="text-[15px] font-semibold text-white/50 tracking-tight">Recent Activity</h2>
+            </div>
+            <div className="space-y-0">
               {activity.map((item, i) => (
-                <motion.div key={item.id}
-                  initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 + 0.4 }}
-                  className="glass-card rounded-2xl p-5 border border-white/5 flex items-center gap-5 hover:border-white/10 transition-all"
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: i * 0.05 + 0.3 }}
+                  className="flex items-center gap-5 py-4 border-b border-white/5 group hover:bg-white/2 -mx-2 px-2 rounded-lg transition-colors"
                 >
-                  <div className={`w-10 h-10 rounded-2xl shrink-0 flex items-center justify-center ${
-                    item.type === "event" ? "bg-primary/15" : "bg-secondary/15"
+                  <div className={`w-8 h-8 rounded-lg shrink-0 flex items-center justify-center text-xs ${
+                    item.type === "event" ? "bg-primary/15 text-primary" : "bg-secondary/10 text-secondary"
                   }`}>
-                    {item.type === "event"
-                      ? <Flame className="w-5 h-5 text-primary" />
-                      : <Sparkles className="w-5 h-5 text-secondary" />
-                    }
+                    {item.type === "event" ? <Flame className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-bold text-sm truncate">{item.label}</div>
-                    <div className="text-xs text-white/40 truncate">{item.description}</div>
+                    <span className="text-[14px] text-white/70 font-medium">{item.label}</span>
+                    <span className="text-[13px] text-white/30 ml-2">{item.description}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs text-white/25 shrink-0">
-                    <Clock className="w-3 h-3" /> {item.timestamp}
-                  </div>
+                  <span className="text-[12px] text-white/25 shrink-0 font-mono">{item.timestamp}</span>
                 </motion.div>
               ))}
             </div>
@@ -237,5 +201,13 @@ export default function Home() {
         )}
       </div>
     </Layout>
+  );
+}
+
+function Sparkles({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/>
+    </svg>
   );
 }
