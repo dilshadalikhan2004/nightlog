@@ -1,22 +1,33 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Nightlog API — cinematic social nightlife platform
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: events
+    description: Nightlife event operations
+  - name: memories
+    description: Memory replay operations
+  - name: invites
+    description: Invite operations
+  - name: messages
+    description: Ambient messaging
+  - name: users
+    description: User profile operations
+  - name: feed
+    description: Discovery feed and stats
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +35,358 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # EVENTS
+  /events:
+    get:
+      operationId: listEvents
+      tags: [events]
+      summary: List all events
+      parameters:
+        - name: filter
+          in: query
+          schema:
+            type: string
+            enum: [trending, tonight, friends, all]
+      responses:
+        "200":
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+    post:
+      operationId: createEvent
+      tags: [events]
+      summary: Create a new event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+  /events/{id}:
+    get:
+      operationId: getEvent
+      tags: [events]
+      summary: Get event by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Event details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "404":
+          description: Not found
+
+  /events/{id}/join:
+    post:
+      operationId: joinEvent
+      tags: [events]
+      summary: Join an event
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Joined
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+  /events/{id}/energy:
+    get:
+      operationId: getEventEnergy
+      tags: [events]
+      summary: Get live energy score for event
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Energy score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnergyScore"
+
+  # MEMORIES
+  /memories:
+    get:
+      operationId: listMemories
+      tags: [memories]
+      summary: List all memory replays
+      responses:
+        "200":
+          description: List of memories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Memory"
+    post:
+      operationId: createMemory
+      tags: [memories]
+      summary: Create a new memory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemoryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Memory"
+
+  /memories/{id}:
+    get:
+      operationId: getMemory
+      tags: [memories]
+      summary: Get memory by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Memory details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Memory"
+        "404":
+          description: Not found
+
+  # INVITES
+  /invites:
+    get:
+      operationId: listInvites
+      tags: [invites]
+      summary: List invites for current user
+      responses:
+        "200":
+          description: List of invites
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invite"
+    post:
+      operationId: createInvite
+      tags: [invites]
+      summary: Send an invite
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InviteInput"
+      responses:
+        "201":
+          description: Invite sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invite"
+
+  /invites/{id}/accept:
+    post:
+      operationId: acceptInvite
+      tags: [invites]
+      summary: Accept an invite
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invite"
+
+  /invites/{id}/decline:
+    post:
+      operationId: declineInvite
+      tags: [invites]
+      summary: Decline an invite
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Declined
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invite"
+
+  # MESSAGES
+  /messages:
+    get:
+      operationId: listMessages
+      tags: [messages]
+      summary: List recent ambient messages
+      parameters:
+        - name: event_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+    post:
+      operationId: sendMessage
+      tags: [messages]
+      summary: Send a message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageInput"
+      responses:
+        "201":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+
+  # USERS
+  /users/me:
+    get:
+      operationId: getMyProfile
+      tags: [users]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    patch:
+      operationId: updateMyProfile
+      tags: [users]
+      summary: Update current user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List users (social graph)
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  # FEED / STATS
+  /feed/stats:
+    get:
+      operationId: getFeedStats
+      tags: [feed]
+      summary: Get discovery feed stats
+      responses:
+        "200":
+          description: Feed statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedStats"
+
+  /feed/trending:
+    get:
+      operationId: getTrendingEvents
+      tags: [feed]
+      summary: Get trending events with energy scores
+      responses:
+        "200":
+          description: Trending events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+
+  /feed/activity:
+    get:
+      operationId: getRecentActivity
+      tags: [feed]
+      summary: Get recent activity feed
+      responses:
+        "200":
+          description: Activity items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +397,231 @@ components:
       required:
         - status
 
+    Event:
+      type: object
+      required: [id, title, type, venue, location, energy_score, attendee_count, starts_at, color_theme, joined]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        type:
+          type: string
+        venue:
+          type: string
+        location:
+          type: string
+        description:
+          type: ["string", "null"]
+        energy_score:
+          type: integer
+        attendee_count:
+          type: integer
+        starts_at:
+          type: string
+        ends_at:
+          type: ["string", "null"]
+        color_theme:
+          type: string
+        joined:
+          type: boolean
+        distance_km:
+          type: ["number", "null"]
+
+    EventInput:
+      type: object
+      required: [title, type, venue, location, starts_at]
+      properties:
+        title:
+          type: string
+        type:
+          type: string
+        venue:
+          type: string
+        location:
+          type: string
+        description:
+          type: string
+        starts_at:
+          type: string
+        ends_at:
+          type: string
+
+    EnergyScore:
+      type: object
+      required: [event_id, score, attendee_count]
+      properties:
+        event_id:
+          type: integer
+        score:
+          type: integer
+        attendee_count:
+          type: integer
+        updated_at:
+          type: string
+
+    Memory:
+      type: object
+      required: [id, title, energy_score, night_date, moments_count, vibe_matches, status]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        energy_score:
+          type: integer
+        night_date:
+          type: string
+        moments_count:
+          type: integer
+        vibe_matches:
+          type: integer
+        status:
+          type: string
+        timeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/TimelineItem"
+        event_id:
+          type: ["integer", "null"]
+
+    MemoryInput:
+      type: object
+      required: [title, night_date]
+      properties:
+        title:
+          type: string
+        night_date:
+          type: string
+        event_id:
+          type: integer
+
+    TimelineItem:
+      type: object
+      required: [id, label, description, time]
+      properties:
+        id:
+          type: integer
+        label:
+          type: string
+        description:
+          type: string
+        time:
+          type: string
+
+    Invite:
+      type: object
+      required: [id, event_id, event_title, sender_name, status, starts_at, attendee_count]
+      properties:
+        id:
+          type: integer
+        event_id:
+          type: integer
+        event_title:
+          type: string
+        sender_name:
+          type: string
+        status:
+          type: string
+        starts_at:
+          type: string
+        attendee_count:
+          type: integer
+        message:
+          type: ["string", "null"]
+
+    InviteInput:
+      type: object
+      required: [event_id, recipient_username]
+      properties:
+        event_id:
+          type: integer
+        recipient_username:
+          type: string
+        message:
+          type: string
+
+    Message:
+      type: object
+      required: [id, content, sender_name, sent_at, is_own]
+      properties:
+        id:
+          type: integer
+        content:
+          type: string
+        sender_name:
+          type: string
+        sent_at:
+          type: string
+        is_own:
+          type: boolean
+        event_id:
+          type: ["integer", "null"]
+
+    MessageInput:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+        event_id:
+          type: integer
+
+    User:
+      type: object
+      required: [id, username, bio, nights_count, memories_count, circles_count, vibe_label]
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        bio:
+          type: string
+        nights_count:
+          type: integer
+        memories_count:
+          type: integer
+        circles_count:
+          type: integer
+        vibe_label:
+          type: string
+        avatar_gradient:
+          type: string
+
+    UserUpdate:
+      type: object
+      properties:
+        username:
+          type: string
+        bio:
+          type: string
+        vibe_label:
+          type: string
+
+    FeedStats:
+      type: object
+      required: [live_events, people_out, avg_energy, memories_tonight]
+      properties:
+        live_events:
+          type: integer
+        people_out:
+          type: integer
+        avg_energy:
+          type: integer
+        memories_tonight:
+          type: integer
+
+    ActivityItem:
+      type: object
+      required: [id, type, label, description, timestamp]
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        label:
+          type: string
+        description:
+          type: string
+        timestamp:
+          type: string
