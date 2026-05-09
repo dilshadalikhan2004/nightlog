@@ -3,6 +3,7 @@ import { useListMessages, useSendMessage } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Send } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Messages() {
   const queryClient = useQueryClient();
@@ -17,37 +18,69 @@ export default function Messages() {
 
   return (
     <Layout>
-      <div className="h-screen flex flex-col max-w-4xl mx-auto">
-        <header className="p-4 lg:p-8 pb-4 border-b border-white/5 bg-background/80 backdrop-blur-xl z-10">
-          <h1 className="text-4xl font-display font-bold glow-text">Global Pulse</h1>
-          <p className="text-muted-foreground text-sm mt-1">Live chatter from the city</p>
+      <div className="h-screen flex flex-col max-w-3xl mx-auto">
+
+        {/* Header */}
+        <header className="px-6 lg:px-10 pt-8 pb-5 shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div className="flex items-center gap-3">
+            <h1 className="display text-[48px] text-white leading-none tracking-wide">Pulse</h1>
+            <span className="tag tag-live flex items-center gap-1.5 mt-1">
+              <span className="live-dot bg-[#00d4ff]" /> Live
+            </span>
+          </div>
+          <p className="text-[13px] text-white/30 mt-1.5 font-light">City-wide ambient chatter</p>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-4 lg:p-8 space-y-6 flex flex-col-reverse">
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 flex flex-col-reverse gap-3">
           <div ref={endRef} />
           {isLoading ? (
-            <div className="flex justify-center"><div className="w-6 h-6 rounded-full border-t-2 border-primary animate-spin" /></div>
+            <div className="flex justify-center py-12">
+              <div className="w-5 h-5 rounded-full border-t-2 border-primary animate-spin" />
+            </div>
           ) : (
-            messages?.map((msg) => (
-              <div key={msg.id} className={`flex ${msg.is_own ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] md:max-w-[70%] rounded-[1.5rem] px-6 py-4 ${
-                  msg.is_own 
-                    ? 'bg-primary text-white rounded-br-sm shadow-[0_0_20px_rgba(139,111,255,0.15)]' 
-                    : 'glass-card border-white/5 rounded-bl-sm'
-                }`}>
-                  {!msg.is_own && <div className="text-xs font-bold text-secondary mb-1">{msg.sender_name}</div>}
-                  <p className="text-base leading-relaxed">{msg.content}</p>
-                  <div className={`text-[10px] mt-2 ${msg.is_own ? 'text-white/60 text-right' : 'text-white/40'}`}>
-                    {msg.sent_at ? new Date(msg.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+            <AnimatePresence initial={false}>
+              {messages?.map((msg, i) => (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.02 }}
+                  className={`flex ${msg.is_own ? "justify-end" : "justify-start"} mb-1`}
+                >
+                  {!msg.is_own && (
+                    <div className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center text-xs font-semibold text-white mr-2.5 mt-auto"
+                      style={{ background: "linear-gradient(135deg,#7c5cfc,#f0365a)" }}>
+                      {msg.sender_name?.[0]?.toUpperCase() ?? "?"}
+                    </div>
+                  )}
+                  <div className={`max-w-[72%] ${msg.is_own ? "items-end" : "items-start"} flex flex-col gap-1`}>
+                    {!msg.is_own && (
+                      <span className="text-[11px] font-medium text-white/35 ml-1">{msg.sender_name}</span>
+                    )}
+                    <div className={`px-4 py-3 rounded-2xl text-[14px] leading-relaxed ${
+                      msg.is_own
+                        ? "text-white rounded-br-sm"
+                        : "text-white/85 rounded-bl-sm"
+                    }`} style={msg.is_own
+                      ? { background: "#7c5cfc", boxShadow: "0 2px 12px rgba(124,92,252,0.2)" }
+                      : { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.07)" }
+                    }>
+                      {msg.content}
+                    </div>
+                    <span className="text-[10px] text-white/20 font-mono mx-1">
+                      {msg.sent_at ? new Date(msg.sent_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+                    </span>
                   </div>
-                </div>
-              </div>
-            ))
+                </motion.div>
+              ))}
+            </AnimatePresence>
           )}
         </div>
 
-        <div className="p-4 lg:p-8 bg-background/80 backdrop-blur-xl border-t border-white/5 pb-safe">
-          <form 
+        {/* Input */}
+        <div className="px-6 lg:px-10 py-5 shrink-0" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <form
             onSubmit={(e) => {
               e.preventDefault();
               if (content.trim()) {
@@ -59,22 +92,26 @@ export default function Messages() {
                 });
               }
             }}
-            className="flex gap-3"
+            className="flex items-center gap-3"
           >
-            <input 
+            <input
               type="text"
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Broadcast to the city..."
-              className="flex-1 glass-card border border-white/10 rounded-full px-6 py-4 text-lg focus:outline-none focus:border-primary/50 transition-colors shadow-inner"
+              className="flex-1 px-5 py-3.5 rounded-2xl text-[14px] text-white placeholder:text-white/25 focus:outline-none transition-colors"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
             />
-            <button 
-              type="submit" 
+            <motion.button
+              type="submit"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               disabled={!content.trim() || sendMessage.isPending}
-              className="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-white disabled:opacity-50 hover:scale-105 transition-transform"
+              className="w-12 h-12 rounded-2xl flex items-center justify-center text-white disabled:opacity-30 transition-opacity shrink-0"
+              style={{ background: "#7c5cfc" }}
             >
-              <Send className="w-6 h-6 ml-1" />
-            </button>
+              <Send className="w-4 h-4 ml-0.5" />
+            </motion.button>
           </form>
         </div>
       </div>

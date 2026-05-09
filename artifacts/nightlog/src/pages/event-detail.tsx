@@ -2,47 +2,76 @@ import { Layout } from "@/components/layout";
 import { useGetEvent, useGetEventEnergy, useJoinEvent, useListMessages, useSendMessage } from "@workspace/api-client-react";
 import { useRoute } from "wouter";
 import { motion } from "framer-motion";
-import { Flame, MapPin, Users, Send, Check } from "lucide-react";
+import { Flame, MapPin, Users, Send, Check, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { Link } from "wouter";
+
+const WAVEFORM_HEIGHTS = [40, 65, 30, 80, 55, 70, 45, 90, 60, 50, 75, 38, 85, 62, 48, 72, 35, 88, 58, 44];
 
 export default function EventDetail() {
-  const [match, params] = useRoute("/event/:id");
+  const [, params] = useRoute("/event/:id");
   const eventId = params?.id ? parseInt(params.id) : 0;
-  
+
   const queryClient = useQueryClient();
   const { data: event, isLoading } = useGetEvent(eventId, { query: { enabled: !!eventId, queryKey: ["event", eventId] } });
   const { data: energy } = useGetEventEnergy(eventId, { query: { enabled: !!eventId, queryKey: ["event-energy", eventId] } });
   const { data: messages } = useListMessages({ event_id: eventId }, { query: { enabled: !!eventId, queryKey: ["messages", eventId] } });
-  
+
   const joinEvent = useJoinEvent();
   const sendMessage = useSendMessage();
   const [message, setMessage] = useState("");
 
   const currentEnergy = energy?.score ?? event?.energy_score ?? 0;
 
-  if (isLoading || !event) return <Layout><div className="h-screen flex items-center justify-center"><div className="w-8 h-8 rounded-full border-t-2 border-primary animate-spin" /></div></Layout>;
+  if (isLoading || !event) return (
+    <Layout><div className="h-screen flex items-center justify-center"><div className="w-6 h-6 rounded-full border-t-2 border-primary animate-spin" /></div></Layout>
+  );
 
   return (
     <Layout>
-      <div className="relative min-h-screen">
-        {/* Cinematic Header */}
-        <div className="h-[50vh] relative overflow-hidden flex items-end p-8 border-b border-white/5">
-          <div className="absolute inset-0 opacity-30" style={{ background: event.color_theme }} />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
-          
-          <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div className="space-y-4 max-w-2xl">
-              <span className="inline-block px-3 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary text-xs font-bold tracking-wider uppercase tracking-widest">{event.type}</span>
-              <h1 className="text-5xl md:text-7xl font-display font-bold glow-text leading-none">{event.title}</h1>
-              <div className="flex flex-wrap items-center gap-6 text-white/70">
-                <div className="flex items-center gap-2"><MapPin className="w-5 h-5 text-white/50" /> {event.venue}</div>
-                <div className="flex items-center gap-2"><Users className="w-5 h-5 text-white/50" /> {event.attendee_count} attending</div>
-                <div className="flex items-center gap-2 text-secondary"><Flame className="w-5 h-5" /> {currentEnergy}% Energy</div>
+      <div className="min-h-screen">
+
+        {/* ── Cinematic header ── */}
+        <div className="relative overflow-hidden" style={{ height: "52vh", minHeight: 340 }}>
+          <div className="absolute inset-0" style={{ background: event.color_theme }} />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(to top, #0a0a0a 0%, rgba(10,10,10,0.6) 50%, rgba(10,10,10,0.1) 100%)" }} />
+
+          {/* Noise grain */}
+          <div className="absolute inset-0 opacity-20 mix-blend-overlay pointer-events-none"
+            style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E\")", backgroundSize: "180px" }} />
+
+          {/* Back */}
+          <div className="absolute top-6 left-6">
+            <Link href="/discover">
+              <button className="flex items-center gap-2 text-[13px] text-white/50 hover:text-white transition-colors">
+                <ArrowLeft className="w-4 h-4" /> Back
+              </button>
+            </Link>
+          </div>
+
+          {/* Energy live badge */}
+          <div className="absolute top-6 right-6 flex items-center gap-2 px-3 py-1.5 rounded-xl text-[12px] font-mono text-white"
+            style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <span className="live-dot bg-[#00d4ff]" />
+            {currentEnergy}% Live
+          </div>
+
+          {/* Content */}
+          <div className="absolute bottom-0 left-0 right-0 px-6 lg:px-10 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-5">
+            <div className="space-y-3">
+              <span className="tag tag-primary">{event.type}</span>
+              <h1 className="display text-[clamp(48px,7vw,96px)] text-white leading-none tracking-wide">{event.title}</h1>
+              <div className="flex flex-wrap items-center gap-5 text-[13px] text-white/50">
+                <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" />{event.venue}</span>
+                <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" />{event.attendee_count} attending</span>
+                <span className="flex items-center gap-1.5 text-[#00d4ff]"><Flame className="w-3.5 h-3.5" />{currentEnergy}% energy</span>
               </div>
             </div>
-            
-            <button 
+
+            <motion.button
+              whileHover={{ scale: event.joined ? 1 : 1.02 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => {
                 if (!event.joined) {
                   joinEvent.mutate({ id: event.id }, {
@@ -51,38 +80,55 @@ export default function EventDetail() {
                 }
               }}
               disabled={event.joined || joinEvent.isPending}
-              className={`px-8 py-4 rounded-full font-bold transition-all ${event.joined ? "bg-white/10 text-white cursor-default" : "bg-primary text-white hover:bg-primary/90 shadow-[0_0_30px_rgba(139,111,255,0.4)]"}`}
+              className="flex items-center gap-2.5 px-7 py-3.5 rounded-xl text-[14px] font-semibold text-white shrink-0 self-start md:self-auto transition-all disabled:opacity-60"
+              style={event.joined
+                ? { background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }
+                : { background: "#7c5cfc", boxShadow: "0 0 0 1px rgba(124,92,252,0.3), 0 8px 24px rgba(124,92,252,0.25)" }
+              }
             >
-              {event.joined ? <span className="flex items-center gap-2"><Check className="w-5 h-5" /> Joined</span> : "Join Event"}
-            </button>
+              {event.joined ? <><Check className="w-4 h-4" /> Joined</> : "Join Event"}
+            </motion.button>
           </div>
         </div>
 
-        <div className="max-w-5xl mx-auto p-4 lg:p-8 grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-8">
-            <section className="glass-card rounded-[2rem] p-8 border-white/5">
-              <h2 className="text-2xl font-display font-bold mb-4">About</h2>
-              <p className="text-white/70 leading-relaxed text-lg">{event.description}</p>
-            </section>
+        {/* ── Body ── */}
+        <div className="max-w-6xl mx-auto px-6 lg:px-10 py-8 grid lg:grid-cols-[1fr_320px] gap-8">
 
-            <section className="glass-card rounded-[2rem] p-8 border-white/5 space-y-6">
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-2xl font-display font-bold">Vibe Feed</h2>
-                <span className="text-xs text-primary animate-pulse flex items-center gap-1"><div className="w-2 h-2 bg-primary rounded-full" /> Live</span>
+          {/* Main column */}
+          <div className="space-y-6">
+
+            {/* About */}
+            <div className="p-6 rounded-2xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <h2 className="text-[13px] font-semibold tracking-[0.18em] uppercase text-white/35 mb-3">About</h2>
+              <p className="text-[15px] text-white/65 leading-relaxed">{event.description}</p>
+            </div>
+
+            {/* Vibe feed */}
+            <div className="p-6 rounded-2xl space-y-5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <div className="flex items-center justify-between">
+                <h2 className="text-[13px] font-semibold tracking-[0.18em] uppercase text-white/35">Vibe Feed</h2>
+                <span className="tag tag-live flex items-center gap-1.5">
+                  <span className="live-dot bg-[#00d4ff]" /> Live
+                </span>
               </div>
-              
-              <div className="h-96 overflow-y-auto pr-2 space-y-4 flex flex-col-reverse">
+
+              <div className="h-80 overflow-y-auto space-y-3 flex flex-col-reverse pr-1">
                 {messages?.map((msg) => (
-                  <div key={msg.id} className={`flex ${msg.is_own ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[80%] rounded-2xl px-5 py-3 ${msg.is_own ? 'bg-primary text-white shadow-[0_0_15px_rgba(139,111,255,0.2)]' : 'glass-card border-white/5'}`}>
-                      {!msg.is_own && <div className="text-xs text-white/50 mb-1">{msg.sender_name}</div>}
-                      <p className="text-sm">{msg.content}</p>
+                  <div key={msg.id} className={`flex ${msg.is_own ? "justify-end" : "justify-start"}`}>
+                    <div className={`max-w-[78%] px-4 py-2.5 rounded-xl text-[13px] leading-relaxed ${
+                      msg.is_own ? "text-white rounded-br-sm" : "text-white/80 rounded-bl-sm"
+                    }`} style={msg.is_own
+                      ? { background: "#7c5cfc" }
+                      : { background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.07)" }
+                    }>
+                      {!msg.is_own && <div className="text-[10px] text-white/35 mb-1 font-medium">{msg.sender_name}</div>}
+                      {msg.content}
                     </div>
                   </div>
                 ))}
               </div>
 
-              <form 
+              <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   if (message.trim()) {
@@ -94,58 +140,67 @@ export default function EventDetail() {
                     });
                   }
                 }}
-                className="flex gap-2"
+                className="flex gap-2.5"
               >
-                <input 
+                <input
                   type="text"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Drop a message..."
-                  className="flex-1 bg-white/5 border border-white/10 rounded-full px-6 py-3 focus:outline-none focus:border-primary/50 transition-colors"
+                  className="flex-1 px-4 py-3 rounded-xl text-[14px] text-white placeholder:text-white/25 focus:outline-none"
+                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
                 />
-                <button type="submit" disabled={!message.trim() || sendMessage.isPending} className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white disabled:opacity-50">
-                  <Send className="w-5 h-5 ml-1" />
+                <button type="submit" disabled={!message.trim() || sendMessage.isPending}
+                  className="w-11 h-11 rounded-xl flex items-center justify-center text-white disabled:opacity-30 shrink-0"
+                  style={{ background: "#7c5cfc" }}>
+                  <Send className="w-4 h-4 ml-0.5" />
                 </button>
               </form>
-            </section>
+            </div>
           </div>
 
-          <div className="space-y-6">
-             <div className="glass-card rounded-[2rem] p-6 border-white/5">
-                <h3 className="font-display font-bold mb-4 text-white/80">Energy Pulse</h3>
-                <div className="h-32 flex items-end gap-1 mb-4">
-                  {[...Array(12)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="flex-1 bg-secondary rounded-t-sm opacity-50"
-                      initial={{ height: "10%" }}
-                      animate={{ height: `${Math.random() * 80 + 20}%` }}
-                      transition={{ duration: 0.5, repeat: Infinity, repeatType: "mirror", delay: i * 0.1 }}
-                    />
-                  ))}
-                </div>
-                <div className="text-center font-mono text-2xl text-secondary glow-text">{currentEnergy}%</div>
-             </div>
-             
-             <div className="glass-card rounded-[2rem] p-6 border-white/5">
-                <h3 className="font-display font-bold mb-4 text-white/80">Details</h3>
-                <div className="space-y-4 text-sm">
-                   <div className="flex justify-between border-b border-white/5 pb-2">
-                     <span className="text-white/50">Starts</span>
-                     <span>{event.starts_at}</span>
-                   </div>
-                   {event.ends_at && (
-                    <div className="flex justify-between border-b border-white/5 pb-2">
-                      <span className="text-white/50">Ends</span>
-                      <span>{event.ends_at}</span>
-                    </div>
-                   )}
-                   <div className="flex justify-between">
-                     <span className="text-white/50">Distance</span>
-                     <span>{event.distance_km?.toFixed(1) ?? '?'} km</span>
-                   </div>
-                </div>
-             </div>
+          {/* Sidebar */}
+          <div className="space-y-5">
+
+            {/* Energy pulse */}
+            <div className="p-5 rounded-2xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-[12px] font-semibold tracking-[0.18em] uppercase text-white/35">Energy Pulse</h3>
+                <span className="font-mono text-[14px] text-[#00d4ff]">{currentEnergy}%</span>
+              </div>
+              <div className="flex items-end gap-[3px] h-20">
+                {WAVEFORM_HEIGHTS.map((h, i) => (
+                  <motion.div
+                    key={i}
+                    className="flex-1 rounded-t-[2px]"
+                    style={{ background: `linear-gradient(to top, #7c5cfc, #00d4ff)`, opacity: 0.7 }}
+                    initial={{ height: "8%" }}
+                    animate={{ height: `${h + Math.random() * 15}%` }}
+                    transition={{ duration: 0.6, repeat: Infinity, repeatType: "mirror", delay: i * 0.06, ease: "easeInOut" }}
+                  />
+                ))}
+              </div>
+              <div className="energy-bar mt-4">
+                <div className="energy-bar-fill" style={{ width: `${currentEnergy}%` }} />
+              </div>
+            </div>
+
+            {/* Details */}
+            <div className="p-5 rounded-2xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <h3 className="text-[12px] font-semibold tracking-[0.18em] uppercase text-white/35 mb-4">Details</h3>
+              <div className="space-y-3 text-[14px]">
+                {(([
+                  ["Starts", event.starts_at],
+                  event.ends_at ? ["Ends", event.ends_at] : null,
+                  ["Distance", `${event.distance_km?.toFixed(1) ?? "?"} km`],
+                ].filter(Boolean)) as string[][]).map(([label, value]) => (
+                  <div key={label as string} className="flex justify-between items-center py-2.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                    <span className="text-white/35 text-[13px]">{label as string}</span>
+                    <span className="text-white/80 font-medium text-[13px]">{value as string}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
