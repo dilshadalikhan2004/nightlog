@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useLocation, Link } from "wouter";
 import { useAuth } from "@/contexts/auth";
 import { ArrowRight } from "lucide-react";
+import { NightlogLogo } from "@/components/nightlog-logo";
 
 function Blobs() {
   return (
@@ -73,12 +74,8 @@ export default function Signup() {
         className="relative z-10 w-full max-w-[400px] mx-6"
       >
         {/* Logo */}
-        <div className="flex items-center gap-2.5 mb-10 justify-center">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg,#7c5cfc,#00d4ff)" }}>
-            <span className="text-white font-bold text-xs">NL</span>
-          </div>
-          <span className="text-[16px] font-semibold text-white/75 tracking-tight">Nightlog</span>
+        <div className="flex justify-center mb-10">
+          <NightlogLogo />
         </div>
 
         <div className="rounded-2xl p-7"

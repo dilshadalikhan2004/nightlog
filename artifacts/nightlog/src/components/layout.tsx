@@ -4,6 +4,7 @@ import { CursorGlow } from "./cursor-glow";
 import { useGetFeedStats } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/auth";
 import { motion } from "framer-motion";
+import { NightlogLogo } from "@/components/nightlog-logo";
 
 const NAV = [
   { href: "/discover", icon: Compass, label: "Discover" },
@@ -28,12 +29,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
         {/* Wordmark */}
         <Link href="/">
-          <div className="px-5 pt-6 pb-4 flex items-center gap-2.5 cursor-pointer group">
-            <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0"
-              style={{ background: "linear-gradient(135deg,#7c5cfc,#00d4ff)" }}>
-              <span className="text-white font-bold text-[10px]">NL</span>
-            </div>
-            <span className="text-[14px] font-semibold tracking-tight text-white/80 group-hover:text-white/95 transition-colors">Nightlog</span>
+          <div className="px-5 pt-6 pb-4 cursor-pointer">
+            <NightlogLogo />
           </div>
         </Link>
 

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/auth";
 import { ArrowRight, Check } from "lucide-react";
+import { NightlogLogo } from "@/components/nightlog-logo";
 
 const TOTAL_STEPS = 5;
 
@@ -313,9 +314,8 @@ export default function Onboarding() {
                         transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.5, ease: "easeInOut" }}
                       />
                     ))}
-                    <div className="relative z-10 w-14 h-14 rounded-2xl flex items-center justify-center"
-                      style={{ background: "linear-gradient(135deg,#7c5cfc,#00d4ff)", boxShadow: "0 0 40px rgba(124,92,252,0.45)" }}>
-                      <span className="text-white font-bold text-lg">NL</span>
+                    <div className="relative z-10 flex items-center justify-center">
+                      <NightlogLogo />
                     </div>
                   </div>
 
