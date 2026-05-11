@@ -1,0 +1,149 @@
+Nightlog currently lacks onboarding, authentication flow, and user identity creation, which makes the product feel incomplete and unrealistic.
+
+Introduce a full product-entry experience before users enter the application.
+
+---
+
+## APPLICATION FLOW
+
+Create the following architecture:
+
+1. Public Marketing Website
+2. Authentication + Onboarding Flow
+3. Authenticated Product Application
+
+---
+
+## LANDING EXPERIENCE
+
+The landing page should:
+
+* introduce Nightlog,
+* explain the AI nightlife concept,
+* showcase screenshots,
+* and transition users into the platform.
+
+Primary CTA:
+
+* Enter Nightlog
+* Join the City
+* Start Exploring
+
+---
+
+## AUTHENTICATION FLOW
+
+Create cinematic authentication pages for:
+
+* Login
+* Signup
+* Continue as Guest
+
+The auth experience should feel:
+
+* premium,
+* immersive,
+* nightlife-oriented,
+* and socially driven.
+
+Avoid generic authentication templates.
+
+Use:
+
+* layered backgrounds,
+* atmospheric motion,
+* cinematic lighting,
+* and smooth transitions.
+
+---
+
+## ONBOARDING FLOW
+
+After signup, introduce a multi-step onboarding flow.
+
+Users should configure:
+
+* username/handle,
+* city,
+* nightlife preferences,
+* vibe preferences,
+* favorite genres,
+* social behavior,
+* and nightlife goals.
+
+Examples:
+
+* underground
+* rooftop
+* ambient
+* afterhours
+* techno
+* live music
+* social
+* intimate
+* high energy
+* cinematic nights
+
+The onboarding should feel intelligent and personalized.
+
+Add:
+
+* animated progress,
+* smooth transitions,
+* adaptive recommendations,
+* and AI personalization moments.
+
+Example:
+“Building your nightlife graph...”
+“Calibrating city energy...”
+“Learning your night patterns...”
+
+---
+
+## STATE + SESSION SYSTEM
+
+Implement believable frontend-only session handling using:
+
+* local storage,
+* mock authentication,
+* persistent onboarding state,
+* saved preferences,
+* and simulated user sessions.
+
+Do not build a full backend auth system yet.
+
+The goal is frontend realism and believable product UX.
+
+---
+
+## TRANSITION INTO APP
+
+After onboarding, route users into:
+
+* /app
+
+The transition should feel immersive and intentional.
+
+Entering the product should feel like:
+
+* entering a live city nightlife network.
+
+---
+
+## DESIGN GOAL
+
+The complete experience should now feel like:
+
+* a real venture-backed consumer startup,
+* with a cinematic public brand layer,
+* sophisticated onboarding,
+* and a dense realtime social product underneath.
+
+Focus heavily on:
+
+* frontend polish,
+* onboarding UX,
+* motion design,
+* interaction quality,
+* responsive behavior,
+* and product realism.

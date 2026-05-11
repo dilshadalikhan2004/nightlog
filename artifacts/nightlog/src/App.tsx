@@ -2,9 +2,14 @@ import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/contexts/auth";
+import { AuthGuard } from "@/components/auth-guard";
 import NotFound from "@/pages/not-found";
 
 import Home from "@/pages/home";
+import Login from "@/pages/login";
+import Signup from "@/pages/signup";
+import Onboarding from "@/pages/onboarding";
 import Discover from "@/pages/discover";
 import EventDetail from "@/pages/event-detail";
 import Memories from "@/pages/memories";
@@ -18,14 +23,35 @@ const queryClient = new QueryClient();
 function Router() {
   return (
     <Switch>
+      {/* Public routes */}
       <Route path="/" component={Home} />
-      <Route path="/discover" component={Discover} />
-      <Route path="/event/:id" component={EventDetail} />
-      <Route path="/memories" component={Memories} />
-      <Route path="/memories/:id" component={MemoryDetail} />
-      <Route path="/invites" component={Invites} />
-      <Route path="/messages" component={Messages} />
-      <Route path="/profile" component={Profile} />
+      <Route path="/login" component={Login} />
+      <Route path="/signup" component={Signup} />
+      <Route path="/onboarding" component={Onboarding} />
+
+      {/* Protected app routes */}
+      <Route path="/discover">
+        <AuthGuard><Discover /></AuthGuard>
+      </Route>
+      <Route path="/event/:id">
+        <AuthGuard><EventDetail /></AuthGuard>
+      </Route>
+      <Route path="/memories">
+        <AuthGuard><Memories /></AuthGuard>
+      </Route>
+      <Route path="/memories/:id">
+        <AuthGuard><MemoryDetail /></AuthGuard>
+      </Route>
+      <Route path="/invites">
+        <AuthGuard><Invites /></AuthGuard>
+      </Route>
+      <Route path="/messages">
+        <AuthGuard><Messages /></AuthGuard>
+      </Route>
+      <Route path="/profile">
+        <AuthGuard><Profile /></AuthGuard>
+      </Route>
+
       <Route component={NotFound} />
     </Switch>
   );
@@ -33,14 +59,16 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Router />
+          </WouterRouter>
+          <Toaster />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </AuthProvider>
   );
 }
 

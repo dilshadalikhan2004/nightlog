@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Flame, TrendingUp, MapPin, Users, Camera, Waves, Send } from "lucide-react";
 import { Link } from "wouter";
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/contexts/auth";
 
 /* ── Animated counter ── */
 function useCountUp(target: number | undefined, duration = 1400) {
@@ -86,6 +87,7 @@ const TESTIMONIALS = [
 export default function Home() {
   const { data: stats } = useGetFeedStats();
   const { data: trending } = useGetTrendingEvents();
+  const { user } = useAuth();
 
   return (
     <Layout>
@@ -119,20 +121,30 @@ export default function Home() {
               </p>
 
               <div className="flex flex-wrap items-center gap-3">
-                <Link href="/discover">
+                <Link href={user ? "/discover" : "/signup"}>
                   <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                     className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-[14px] font-semibold text-white"
                     style={{ background: "#7c5cfc", boxShadow: "0 0 0 1px rgba(124,92,252,0.3), 0 8px 24px rgba(124,92,252,0.22)" }}>
-                    Explore the city <ArrowRight className="w-4 h-4" />
+                    {user ? "Open the App" : "Enter Nightlog"} <ArrowRight className="w-4 h-4" />
                   </motion.button>
                 </Link>
-                <Link href="/memories">
-                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                    className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-[14px] font-medium text-white/55 hover:text-white/80 transition-colors"
-                    style={{ border: "1px solid rgba(255,255,255,0.09)" }}>
-                    Replay memories
-                  </motion.button>
-                </Link>
+                {user ? (
+                  <Link href="/memories">
+                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                      className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-[14px] font-medium text-white/55 hover:text-white/80 transition-colors"
+                      style={{ border: "1px solid rgba(255,255,255,0.09)" }}>
+                      Replay memories
+                    </motion.button>
+                  </Link>
+                ) : (
+                  <Link href="/login">
+                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                      className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-[14px] font-medium text-white/55 hover:text-white/80 transition-colors"
+                      style={{ border: "1px solid rgba(255,255,255,0.09)" }}>
+                      Sign in
+                    </motion.button>
+                  </Link>
+                )}
               </div>
             </motion.div>
 
@@ -299,14 +311,16 @@ export default function Home() {
               <p className="text-[15px] text-white/35 max-w-sm font-light">Join the city. Every night has a story.</p>
             </div>
             <div className="flex flex-col gap-3">
-              <Link href="/discover">
+              <Link href={user ? "/discover" : "/signup"}>
                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                   className="flex items-center gap-2.5 px-8 py-4 rounded-xl text-[15px] font-semibold text-white"
                   style={{ background: "#7c5cfc", boxShadow: "0 0 0 1px rgba(124,92,252,0.3), 0 8px 32px rgba(124,92,252,0.25)" }}>
-                  Enter the Night <ArrowRight className="w-5 h-5" />
+                  {user ? "Open the App" : "Enter the Night"} <ArrowRight className="w-5 h-5" />
                 </motion.button>
               </Link>
-              <p className="text-[12px] text-white/22 text-center">No signup required</p>
+              {!user && (
+                <p className="text-[12px] text-white/22 text-center">Free forever · No credit card</p>
+              )}
             </div>
           </div>
 
