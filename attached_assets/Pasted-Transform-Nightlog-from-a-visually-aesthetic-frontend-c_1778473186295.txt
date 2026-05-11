@@ -1,0 +1,376 @@
+Transform Nightlog from a visually aesthetic frontend concept into a believable production-grade AI-powered nightlife platform with modern product architecture, dense interaction systems, and realistic consumer-product UX.
+
+Nightlog should feel like a real social nightlife operating system actively used by thousands of people across a city every night — not an AI-generated landing page or static portfolio showcase.
+
+The current implementation has several issues:
+
+* cards are visually repetitive,
+* gradients dominate over information hierarchy,
+* layouts are overly spacious,
+* interaction density is low,
+* event metadata is minimal,
+* several pages feel static,
+* and the product currently mixes startup landing-page sections with authenticated product UI.
+
+This makes the experience feel more like a generated design concept than a real software platform.
+
+The redesign should focus heavily on:
+
+* frontend engineering quality,
+* realistic product behavior,
+* scalable UI systems,
+* interaction design,
+* motion systems,
+* responsive architecture,
+* and believable consumer-product UX.
+
+---
+
+## PRODUCT ARCHITECTURE
+
+Separate Nightlog into TWO completely different experiences:
+
+1. Public Marketing Website
+2. Authenticated Product Application
+
+These should feel intentionally different while preserving the same cinematic visual identity.
+
+---
+
+## PUBLIC MARKETING WEBSITE
+
+The public website is responsible for:
+
+* product storytelling,
+* onboarding,
+* feature explanation,
+* AI nightlife positioning,
+* brand identity,
+* screenshots,
+* social proof,
+* SEO,
+* and conversion.
+
+Pages should include:
+
+* Landing/Home
+* Features
+* About
+* Cities
+* Safety
+* Careers
+* Press
+* Download / Join Waitlist
+
+The marketing site can be:
+
+* cinematic,
+* immersive,
+* spacious,
+* editorial,
+* emotionally branded,
+* and visually expressive.
+
+Use:
+
+* bold typography,
+* motion-driven storytelling,
+* immersive sections,
+* animated transitions,
+* scroll interactions,
+* and premium presentation design.
+
+However:
+DO NOT make the authenticated product experience feel like this.
+
+---
+
+## AUTHENTICATED PRODUCT APPLICATION
+
+After login, the UI should completely shift into a utility-first real-time social product.
+
+The authenticated app should NOT contain:
+
+* giant hero sections,
+* startup-style feature blocks,
+* testimonial sections,
+* oversized slogans,
+* or presentation-oriented layouts.
+
+Instead, the product should feel:
+
+* dense,
+* stateful,
+* live,
+* personalized,
+* responsive,
+* realtime,
+* and behavior-driven.
+
+The app should feel similar to:
+
+* Spotify Home,
+* Discord activity systems,
+* Perplexity workspace feeds,
+* Snapchat social discovery,
+* Apple Fitness dashboards,
+* Arc Browser spaces,
+* and Linear’s information density.
+
+---
+
+## CORE PRODUCT FEATURES
+
+Nightlog should function like a living nightlife intelligence network.
+
+Core systems should include:
+
+1. LIVE CITY ENERGY SYSTEM
+
+* realtime venue momentum,
+* crowd density,
+* energy shifts,
+* venue popularity trends,
+* peak-hour predictions,
+* and dynamic nightlife heatmaps.
+
+2. AI NIGHTLIFE DISCOVERY
+
+* personalized recommendations,
+* vibe matching,
+* AI-generated nightlife routes,
+* adaptive suggestions,
+* contextual recommendations,
+* and “why this is recommended” explanations.
+
+3. SOCIAL CIRCLE SYSTEM
+
+* friend presence,
+* group coordination,
+* live invite flows,
+* venue syncing,
+* realtime activity,
+* and social proximity awareness.
+
+4. MEMORY REPLAY SYSTEM
+
+* cinematic timelines,
+* nightlife archives,
+* AI-generated memory recaps,
+* story-style replay systems,
+* and emotional/social replay experiences.
+
+5. PULSE SYSTEM
+   A realtime city-wide social layer containing:
+
+* live venue channels,
+* ambient city chatter,
+* typing indicators,
+* ephemeral messages,
+* presence systems,
+* reactions,
+* trending conversations,
+* and live updates.
+
+---
+
+## FRONTEND ENGINEERING REQUIREMENTS
+
+Build the frontend like a scalable production application.
+
+Use:
+
+* React + TypeScript architecture,
+* reusable component systems,
+* scalable folder organization,
+* proper state management,
+* responsive layouts,
+* modular UI composition,
+* and maintainable design systems.
+
+Frontend quality should prioritize:
+
+* interaction depth,
+* responsiveness,
+* UX realism,
+* and product polish.
+
+Add:
+
+* hover states,
+* spring animations,
+* optimistic UI updates,
+* smooth route transitions,
+* loading skeletons,
+* animated counters,
+* contextual tooltips,
+* realtime state changes,
+* keyboard shortcuts,
+* adaptive panels,
+* and subtle motion systems.
+
+Ensure:
+
+* accessibility-aware contrast,
+* semantic structure,
+* scalable spacing rhythm,
+* and typography hierarchy.
+
+---
+
+## EVENT CARD REDESIGN
+
+Current cards feel too empty and repetitive.
+
+Redesign cards with richer information density and real product behavior.
+
+Event cards should include:
+
+* live attendee previews,
+* queue/wait estimates,
+* venue vibe tags,
+* AI recommendation reasoning,
+* live friend activity,
+* dynamic attendance changes,
+* save/share/invite actions,
+* genre indicators,
+* price ranges,
+* venue distance,
+* crowd mix,
+* trending status,
+* energy trajectory,
+* and contextual metadata.
+
+Reduce overuse of giant empty gradients.
+
+Cards should support:
+
+* compact mode,
+* expanded mode,
+* hover interactions,
+* adaptive layouts,
+* and realtime state updates.
+
+---
+
+## DISCOVER PAGE
+
+The Discover page should feel like a sophisticated nightlife intelligence engine.
+
+Features should include:
+
+* dense filtering systems,
+* AI-assisted search,
+* map integration,
+* smart sorting,
+* adaptive recommendation flows,
+* realtime trending systems,
+* nearby activity detection,
+* social relevance signals,
+* and personalized discovery.
+
+The page should feel alive and constantly updating.
+
+---
+
+## PULSE PAGE
+
+The current Pulse page feels like a static messaging clone.
+
+Redesign it into a city-wide realtime ambient social feed.
+
+Include:
+
+* venue-specific channels,
+* city activity streams,
+* ephemeral nightlife chatter,
+* typing indicators,
+* realtime reactions,
+* dynamic updates,
+* trending venue discussions,
+* live event commentary,
+* and ambient social energy.
+
+The interface should feel socially alive at all times.
+
+---
+
+## VISUAL DESIGN LANGUAGE
+
+Preserve the cinematic aesthetic, but evolve it into a believable product system.
+
+The design language should feel:
+
+* premium,
+* immersive,
+* engineered,
+* product-oriented,
+* and modern.
+
+Reduce:
+
+* repetitive gradient usage,
+* oversized empty sections,
+* static layouts,
+* and presentation-only design.
+
+Introduce:
+
+* asymmetry,
+* layout variation,
+* adaptive density,
+* richer hierarchy,
+* dynamic panels,
+* contextual surfaces,
+* and stronger visual rhythm.
+
+---
+
+## RESPONSIVENESS
+
+The platform must behave like a real consumer product across:
+
+* desktop,
+* tablet,
+* and mobile.
+
+Design mobile-first interaction patterns where appropriate.
+
+Ensure:
+
+* responsive navigation systems,
+* adaptive layouts,
+* touch-friendly interactions,
+* and fluid component scaling.
+
+---
+
+## REFERENCE PRODUCTS
+
+Use inspiration from:
+
+* Linear
+* Perplexity
+* Spotify
+* Discord
+* Notion AI
+* Apple Music
+* Arc Browser
+* Cosmos
+* Snapchat Maps
+* Apple Fitness
+* Radius
+
+Focus on:
+
+* frontend polish,
+* information hierarchy,
+* motion systems,
+* believable UX,
+* realtime interaction,
+* responsive layouts,
+* and production realism.
+
+Do NOT generate generic startup landing-page sections inside the authenticated app.
+
+Build Nightlog like a real AI-powered social platform with persistent user behavior, realtime systems, cinematic identity, and scalable frontend architecture.
